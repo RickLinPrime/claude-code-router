@@ -107,7 +107,12 @@ export const router = async (req: any, _res: any, config: any) => {
     );
 
     let model;
-    if (config.CUSTOM_ROUTER_PATH) {
+    
+    // 检查是否为模型别名
+    if (config.ModelAliases && config.ModelAliases[req.body.model]) {
+      model = config.ModelAliases[req.body.model];
+      log("Using model alias:", req.body.model, "->", model);
+    } else if (config.CUSTOM_ROUTER_PATH) {
       try {
         const customRouter = require(config.CUSTOM_ROUTER_PATH);
         model = await customRouter(req, config);
@@ -115,6 +120,7 @@ export const router = async (req: any, _res: any, config: any) => {
         log("failed to load custom router", e.message);
       }
     }
+    
     if (!model) {
       model = await getUseModel(req, tokenCount, config);
     }
